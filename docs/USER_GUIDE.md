@@ -134,3 +134,7 @@ The messages appear in your admin language; the table lists their English wordin
 | This page has no EN version to translate from | The page only exists in other languages. Create the source-language version first. |
 | … text blocks came back untranslated | Supertext returned the page without some blocks. They were kept in the source language; translate again or fix them by hand. |
 | Page permissions deny 'update' on this page | You are not allowed to edit this page. Ask your administrator. |
+
+## Support
+
+Questions, problems or ideas: use the [Supertext support form](https://integrations.supertext.com/en/support?platform=grav). Mention the version of Grav and of the plugin, what you did and what you expected; an error message helps a lot. You get an answer by email, in your language.
