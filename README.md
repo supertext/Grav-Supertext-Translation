@@ -2,6 +2,8 @@
 
 Translate Grav pages into your site's other languages with [Supertext](https://www.supertext.com) AI translation, straight from the page editor of Grav 2's Admin2.
 
+![Demo: in Grav's page editor, the Supertext panel translates an English page into German and French; the German version opens in the editor, saved unpublished](docs/images/demo.gif)
+
 - A **Supertext** button in the page editor toolbar opens a panel listing every site language and its translation state.
 - One click translates the page into several languages at once: content, title, menu label and meta description.
 - Markdown formatting, links, code, images, Twig and shortcodes come through intact.

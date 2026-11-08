@@ -228,7 +228,32 @@ pip install playwright && playwright install chromium   # once
 composer docs:screenshots
 ```
 
-`scripts/docs-screenshots.sh` downloads Grav from its GitHub release (cached in `.cache/`, or in `CACHE_DIR`), builds a throwaway site with the demo's entrypoint (random local-only passwords), starts the stand-in API (which also takes the version reports, `SUPERTEXT_REPORT_URL`) and Grav, and runs `scripts/screenshots.py` (Playwright, 1280×820 at 1× scale, cropped). It fails if any sample text had no stand-in translation. Regenerate the images in the same commit whenever the UI they show changes; add new sample text to `scripts/stand-in-api/translations.php`.
+`scripts/docs-screenshots.sh` (with `scripts/docs-site.sh`, shared with the movies below) downloads Grav from its GitHub release (cached in `.cache/`, or in `CACHE_DIR`), builds a throwaway site with the demo's entrypoint (random local-only passwords), starts the stand-in API (which also takes the version reports, `SUPERTEXT_REPORT_URL`) and Grav, and runs `scripts/screenshots.py` (Playwright, 1280×820 at 1× scale, cropped). It fails if any sample text had no stand-in translation. Regenerate the images in the same commit whenever the UI they show changes; add new sample text to `scripts/stand-in-api/translations.php`.
+
+The local ports are `GRAV_PORT` (default 8090) and `API_PORT` (8089, the stand-in).
+
+## Demo movie
+
+`docs/images/demo.gif` (at the top of the README) is recorded by `scripts/movie/demo.mjs` with Supertext's shared movie kit (`scripts/movie/movie-kit.mjs` and `scripts/movie/assets/`: Playwright screencast → ffmpeg; intro and outro cards, caption bar, cursor, cuts the waiting time; Inter under the SIL Open Font License, `assets/fonts/Inter-LICENSE.txt`). Like the screenshots, it runs against a fresh throwaway site and the stand-in API:
+
+```bash
+pip install piper-tts      # the voice (once); without it, or with MOVIE_VOICE=0, the movie is silent
+composer docs:movie        # Node.js 20+ and ffmpeg; installs Playwright in scripts/movie/ on the first run
+```
+
+About 45 seconds, 1280×720 at 30 fps, an English voice and English captions: the demo editor opens the English home page in the page editor, clicks the **Supertext translation** button, keeps *Deutsch* and *Français*, clicks *Translate into 2 languages* (the waiting time is cut), and switches the editor to the new, unpublished German version. The script writes the GIF (800 px, 12 fps, silent, keep it under 3 MB) to `docs/images/demo.gif` and the MP4 to `scripts/movie/out/Grav-Supertext-Translation.mp4` (git-ignored; `MOVIE_OUT` changes the path). The MP4 is not committed. Record it again in the same commit when the panel changes.
+
+**Install and configuration movie** (`scripts/movie/install.mjs`, MP4 only, no GIF):
+
+```bash
+composer docs:movie:install
+```
+
+About 92 seconds, same kit, voice and look, for administrators. The site starts without an API key. It shows the steps from `docs/INSTALLATION.md` in the kit's terminal (download the release zip, unzip it into `user/plugins`, `bin/grav clear`; output shortened), then, signed in as the demo **administrator**: *Configuration → System → Languages*, *Plugins* → *Supertext Translation* → *Configure*, where the key comes from (supertext.com → Integrations → API; create an account at supertext.com), the made-up key `st-demo-0000-0000-0000` typed into *API key* (the stand-in accepts any key), *Save* and the API key check (*the connection to Supertext works*), *Supertext language codes* (Deutsch → *Swiss High German (de-CH)*, *Translation review* left off), and the **Supertext translation** button in the page editor. The MP4 goes to `scripts/movie/out/Grav-Supertext-Translation-install.mp4` (git-ignored, not committed; `MOVIE_OUT` changes the path). Record it again when the installation steps or the settings page change.
+
+The voice is made with [Piper](https://pypi.org/project/piper-tts/): the kit's `say()` speaks each step's line, shows its caption and holds until the line is finished; the time spent making the speech is cut. The voice model (63 MB, pinned revision, checked by SHA-256) downloads itself once into `scripts/movie/voice-cache/` (git-ignored, never committed). `CHROMIUM_PATH` picks a Chromium other than Playwright's. The kit is the same in every Supertext plugin repo: don't restyle it here.
+
+Voice: Piper voice “alba” (en_GB), trained on a dataset from the University of Edinburgh's Centre for Speech Technology Research, CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/)
 
 ## Demo
 

@@ -1,0 +1,13 @@
+{
+  "name": "grav-supertext-docs-movies",
+  "private": true,
+  "type": "module",
+  "description": "Records the demo and install movies from the demo (see docs/DEVELOPER.md → Demo movie)",
+  "scripts": {
+    "movie": "node demo.mjs",
+    "movie:install": "node install.mjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.56.0"
+  }
+}

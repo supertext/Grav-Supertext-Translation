@@ -6,3 +6,5 @@ node_modules/
 .cache/
 .phpunit.result.cache
 .grav/
+/scripts/movie/out/
+/scripts/movie/voice-cache/
