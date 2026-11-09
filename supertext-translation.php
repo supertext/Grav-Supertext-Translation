@@ -60,6 +60,8 @@ class SupertextTranslationPlugin extends Plugin
         $routes = $event['routes'];
         $routes->get('/supertext/status', [TranslationController::class, 'status']);
         $routes->post('/supertext/translate', [TranslationController::class, 'translate']);
+        $routes->post('/supertext/export', [TranslationController::class, 'export']);
+        $routes->post('/supertext/import', [TranslationController::class, 'import']);
         $routes->get('/supertext/settings', [SettingsController::class, 'show']);
         $routes->post('/supertext/check', [SettingsController::class, 'check']);
         $routes->get(Reporting::PING_PATH, [PingController::class, 'ping']);
@@ -93,18 +95,26 @@ class SupertextTranslationPlugin extends Plugin
     }
 
     /**
-     * The status field on the settings page (supertext_status) shows the API key check; it has no
-     * value of its own, so it is never written to the plugin's config file.
+     * Saving the plugin's settings: the status field (supertext_status) has no value of its own,
+     * so it is never written to the config file, and language_codes keeps only codes Supertext
+     * offers (Settings::sanitizeLanguageCodes(); an older list of rows becomes a map).
      */
     public function onAdminSave(Event $event): void
     {
         $object = $event['object'] ?? null;
-        if (!$object instanceof \Grav\Common\Data\Data || $object->get('supertext_status') === null) {
+        if (!$object instanceof \Grav\Common\Data\Data) {
             return;
         }
         $file = $object->file();
-        if ($file instanceof \RocketTheme\Toolbox\File\AbstractFile && str_ends_with(str_replace('\\', '/', (string)$file->filename()), 'plugins/supertext-translation.yaml')) {
+        if (!$file instanceof \RocketTheme\Toolbox\File\AbstractFile || !str_ends_with(str_replace('\\', '/', (string)$file->filename()), 'plugins/supertext-translation.yaml')) {
+            return;
+        }
+        if ($object->get('supertext_status') !== null) {
             $object->undef('supertext_status');
+        }
+        $codes = $object->get('language_codes');
+        if ($codes !== null) {
+            $object->set('language_codes', Settings::sanitizeLanguageCodes($codes));
         }
     }
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Grav\Plugin\SupertextTranslation;
 
+use Grav\Plugin\SupertextTranslation\Api\SupertextClient;
 use Supertext\GravTranslation\Sdk\V1\Languages;
 use Supertext\GravTranslation\Sdk\V1\Politeness;
 use Supertext\GravTranslation\Sdk\V1\Protocol;
@@ -16,6 +17,8 @@ final class Settings
      * @param array<string, string> $languageCodes Grav language code => Supertext language code
      * @param list<string> $headerFields front matter fields to translate (dot paths)
      * @param bool|null $versionReports "Send version information to Supertext" (null: not set, on)
+     * @param list<string> $reviewLanguages Grav codes (lower case) with *Translation review* on
+     * @param string $reviewUrl Supertext's review service for those languages ('' = review off everywhere)
      */
     public function __construct(
         public readonly string $apiKey = '',
@@ -28,10 +31,12 @@ final class Settings
         public readonly int $pollInterval = 2,
         public readonly int $pollTimeout = 300,
         public readonly ?bool $versionReports = null,
+        public readonly array $reviewLanguages = [],
+        public readonly string $reviewUrl = SupertextClient::REVIEW_URL,
     ) {}
 
     /**
-     * The settings with SUPERTEXT_API_KEY and SUPERTEXT_API_URL from the environment.
+     * The settings with SUPERTEXT_API_KEY, SUPERTEXT_API_URL and SUPERTEXT_REVIEW_URL from the environment.
      *
      * @param array<string, mixed> $config
      */
@@ -39,12 +44,13 @@ final class Settings
     {
         $key = getenv('SUPERTEXT_API_KEY');
         $url = getenv('SUPERTEXT_API_URL');
+        $reviewUrl = getenv('SUPERTEXT_REVIEW_URL');
 
-        return self::fromArray($config, $key === false ? null : $key, $url === false ? null : $url);
+        return self::fromArray($config, $key === false ? null : $key, $url === false ? null : $url, $reviewUrl === false ? null : $reviewUrl);
     }
 
     /** @param array<string, mixed> $config */
-    public static function fromArray(array $config, ?string $environmentKey = null, ?string $environmentUrl = null): self
+    public static function fromArray(array $config, ?string $environmentKey = null, ?string $environmentUrl = null, ?string $environmentReviewUrl = null): self
     {
         $apiKey = self::normalizeKey((string)($config['api_key'] ?? ''));
         if ($apiKey === '' && $environmentKey !== null) {
@@ -52,17 +58,23 @@ final class Settings
         }
 
         $codes = [];
-        foreach ((array)($config['language_codes'] ?? []) as $key => $value) {
-            // Accept both a map (de: de-CH) and a list of {grav, supertext} rows.
-            if (is_array($value)) {
-                $key = (string)($value['grav'] ?? '');
-                $value = (string)($value['supertext'] ?? '');
+        $review = [];
+        foreach (self::mappingEntries($config['language_codes'] ?? []) as $key => $entry) {
+            if ($entry['code'] !== '') {
+                $codes[strtolower($key)] = $entry['code'];
             }
-            $key = strtolower(trim((string)$key));
-            $value = trim((string)$value);
-            if ($key !== '' && $value !== '') {
-                $codes[$key] = $value;
+            if ($entry['review']) {
+                $review[] = strtolower($key);
             }
+        }
+
+        // review_url: SUPERTEXT_REVIEW_URL (if not empty) wins; a missing setting is Supertext's
+        // review service, an empty one turns review off for every language.
+        $reviewUrl = trim((string)$environmentReviewUrl);
+        if ($reviewUrl === '') {
+            $reviewUrl = array_key_exists('review_url', $config) && $config['review_url'] !== null
+                ? trim((string)$config['review_url'])
+                : SupertextClient::REVIEW_URL;
         }
 
         $fields = array_values(array_filter(array_map(
@@ -86,13 +98,78 @@ final class Settings
             versionReports: array_key_exists('version_reports', $config) && $config['version_reports'] !== null && $config['version_reports'] !== ''
                 ? filter_var($config['version_reports'], FILTER_VALIDATE_BOOLEAN)
                 : null,
+            reviewLanguages: array_values(array_unique($review)),
+            reviewUrl: $reviewUrl,
         );
     }
 
     /**
+     * The setting language_codes as it is saved (onAdminSave): a map { Grav code: Supertext code }
+     * with only codes Supertext offers, in their canonical form ("de_ch" → "de-CH"). A language
+     * with *Translation review* on is stored as { code: …, review: true } (code '' = the default).
+     * Blank and unknown codes are dropped; the older list of {grav, supertext} rows becomes a map.
+     *
+     * @return array<string, string|array{code: string, review: true}>
+     */
+    public static function sanitizeLanguageCodes(mixed $value): array
+    {
+        $codes = [];
+        foreach (self::mappingEntries($value) as $grav => $entry) {
+            $target = $entry['code'] !== '' ? Languages::matchTarget($entry['code']) : null;
+            if ($entry['review']) {
+                $codes[$grav] = ['code' => $target ?? '', 'review' => true];
+            } elseif ($target !== null) {
+                $codes[$grav] = $target;
+            }
+        }
+
+        return $codes;
+    }
+
+    /**
+     * The rows of language_codes with a code or review on, from a map (de: de-CH, or
+     * fr: { code: fr-CH, review: true }) or the older list of {grav, supertext} rows.
+     *
+     * @return array<string, array{code: string, review: bool}>
+     */
+    private static function mappingEntries(mixed $value): array
+    {
+        $rows = [];
+        foreach (is_array($value) ? $value : [] as $key => $entry) {
+            $review = false;
+            if (is_array($entry) && array_key_exists('grav', $entry)) {
+                $key = (string)$entry['grav'];
+                $code = $entry['supertext'] ?? '';
+            } elseif (is_array($entry)) {
+                $code = $entry['code'] ?? '';
+                $review = filter_var($entry['review'] ?? false, FILTER_VALIDATE_BOOLEAN);
+            } else {
+                $code = $entry;
+            }
+            $key = trim((string)$key);
+            $code = is_scalar($code) ? trim((string)$code) : '';
+            if ($key !== '' && ($code !== '' || $review)) {
+                $rows[$key] = ['code' => $code, 'review' => $review];
+            }
+        }
+
+        return $rows;
+    }
+
+    /**
+     * Whether translations into this Grav language go through Supertext's review service
+     * (its *Translation review* is on and review_url isn't empty).
+     */
+    public function reviewFor(string $gravCode): bool
+    {
+        return $this->reviewUrl !== '' && in_array(strtolower(trim($gravCode)), $this->reviewLanguages, true);
+    }
+
+    /**
      * The target code sent to Supertext for a Grav language: the mapping (language_codes),
-     * else the Grav code if it is exactly a Supertext code ("de-ch" → "de-CH", "es" → "es").
-     * No guessing: a bare "de" has no Supertext code until an administrator maps it.
+     * else the Grav code if it is exactly a Supertext code ("de-ch" → "de-CH", "es" → "es"),
+     * else the SDK's default ("de" → "de-DE", "zh-tw" → "zh-Hant", "es-es" → "es").
+     * Nothing else is guessed: "en-ie", "de-li" or "gsw" need a mapping.
      *
      * @throws SdkException unsupported_language (nothing is sent)
      */
@@ -101,7 +178,7 @@ final class Settings
         return Languages::target($gravCode, $this->languageCodes);
     }
 
-    /** targetCode(), or null while the language isn't mapped (for the settings and the panel). */
+    /** targetCode(), or null for a language without mapping and default (for the settings and the panel). */
     public function targetCodeOrNull(string $gravCode): ?string
     {
         try {

@@ -179,17 +179,18 @@ final class PageTranslatorTest extends TestCase
     public function testUnmappedLanguageIsNotSentAndTheOthersAreTranslated(): void
     {
         $this->translator = $this->makeTranslator(new Settings(apiKey: 'k', languageCodes: ['de' => 'de-CH']));
-        $result = $this->translate(['de', 'fr', 'es']);
+        $result = $this->translate(['de', 'fr', 'gsw', 'es']);
 
         self::assertSame('created', $result['de']['result']);
+        self::assertSame('created', $result['fr']['result'], 'fr has a default: fr-FR');
         self::assertSame('created', $result['es']['result'], 'es is a Supertext code as it is');
-        self::assertSame('error', $result['fr']['result']);
-        self::assertSame('unsupported_language', $result['fr']['reason']);
-        self::assertSame(['fr'], $result['fr']['args']);
-        self::assertStringContainsString('has no Supertext language yet', $result['fr']['message']);
-        self::assertFileDoesNotExist($this->folder . '/default.fr.md');
+        self::assertSame('error', $result['gsw']['result']);
+        self::assertSame('unsupported_language', $result['gsw']['reason']);
+        self::assertSame(['gsw'], $result['gsw']['args']);
+        self::assertStringContainsString('has no Supertext language yet', $result['gsw']['message']);
+        self::assertFileDoesNotExist($this->folder . '/default.gsw.md');
         $targets = array_map(static fn(array $r): string => preg_match('/name="target_lang"\r\n\r\n([^\r]*)/', (string)$r['body'], $m) ? $m[1] : '', array_filter($this->api->requests, static fn(array $r): bool => $r['method'] === 'POST'));
-        self::assertSame(['de-CH', 'es'], array_values($targets), 'nothing is sent for the unmapped language');
+        self::assertSame(['de-CH', 'fr-FR', 'es'], array_values($targets), 'nothing is sent for the unmapped language');
     }
 
     public function testUnmappedSourceStopsBeforeAnythingIsSent(): void
@@ -220,7 +221,8 @@ final class PageTranslatorTest extends TestCase
         $settings = Settings::fromArray(['language_codes' => [['grav' => 'FR', 'supertext' => 'fr-CH']], 'api_key' => ''], 'Supertext-Auth-Key env');
         self::assertSame('fr-CH', $settings->targetCode('fr'));
         self::assertSame('de-CH', $settings->targetCode('de-ch'));
-        self::assertNull($settings->targetCodeOrNull('it'), 'no default region: it needs a mapping');
+        self::assertSame('it-IT', $settings->targetCodeOrNull('it'), 'the SDK default for a bare it');
+        self::assertNull($settings->targetCodeOrNull('de-li'), 'no guessed region: de-LI needs a mapping');
         self::assertSame('fr', $settings->sourceCode('fr'));
         self::assertSame('de', $settings->sourceCode('de-ch'));
         self::assertSame('env', $settings->apiKey);
@@ -237,5 +239,23 @@ final class PageTranslatorTest extends TestCase
         $page = PageFile::read($file);
         $change($page);
         $page->write($file);
+    }
+
+    public function testLanguageWithTranslationReviewGoesThroughTheReviewService(): void
+    {
+        $settings = Settings::fromArray(['api_key' => 'k', 'language_codes' => ['de' => ['code' => 'de-CH', 'review' => true], 'fr' => 'fr-FR']]);
+        $client = SupertextClient::fromSettings($settings, 'Grav-Supertext-Translation/test', $this->api, static function (): void {});
+        $translator = new PageTranslator($client, $settings, static fn(): string => '2026-10-05T20:00:00Z');
+
+        $result = $translator->translate($this->folder, 'default', 'en', ['de', 'fr']);
+        self::assertSame('created', $result['de']['result']);
+        self::assertSame('created', $result['fr']['result']);
+        $hosts = [];
+        foreach ($this->api->requests as $request) {
+            $hosts[(string)parse_url($request['url'], PHP_URL_HOST)][] = $request['method'];
+        }
+        self::assertSame(['POST', 'GET', 'GET', 'DELETE'], $hosts['localizationreview-production.up.railway.app'], 'German: upload, status, download, delete at the review service');
+        self::assertSame(['POST', 'GET', 'GET', 'DELETE'], $hosts['api.supertext.com'], 'French: directly to Supertext');
+        self::assertStringContainsString('de-CH', (string)$this->api->requests[0]['body']);
     }
 }

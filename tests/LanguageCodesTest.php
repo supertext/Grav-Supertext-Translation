@@ -12,7 +12,8 @@ use Supertext\GravTranslation\Sdk\V1\SupertextException as SdkException;
 /**
  * Grav language codes => Supertext codes, through the plugin's setting (language_codes) and
  * the bundled SDK's Languages (whose own rules are tested in the SDK against spec/languages.json).
- * No guessing: the mapping wins, else an exact Supertext code, else unsupported_language.
+ * The mapping wins, else an exact Supertext code, else the SDK's default (de → de-DE), else
+ * unsupported_language.
  */
 final class LanguageCodesTest extends TestCase
 {
@@ -27,6 +28,12 @@ final class LanguageCodesTest extends TestCase
         yield 'bare Supertext target' => ['es', [], 'es'];
         yield 'script' => ['zh-hant', [], 'zh-Hant'];
         yield 'blank mapping ignored' => ['nl', ['nl' => ' '], 'nl'];
+        yield 'default for a bare de' => ['de', [], 'de-DE'];
+        yield 'default for a bare en' => ['en', [], 'en-US'];
+        yield 'default for a bare zh' => ['zh', [], 'zh-Hans'];
+        yield 'default for zh-tw' => ['zh-tw', [], 'zh-Hant'];
+        yield 'region of a bare target' => ['es-ES', [], 'es'];
+        yield 'mapping wins over the default' => ['de', ['de' => 'de-CH'], 'de-CH'];
     }
 
     /** @param array<string, string> $mapping */
@@ -42,11 +49,10 @@ final class LanguageCodesTest extends TestCase
     /** @return iterable<string, array{string}> */
     public static function unmapped(): iterable
     {
-        yield 'bare de has no default region any more' => ['de'];
-        yield 'bare en' => ['en'];
-        yield 'bare zh' => ['zh'];
-        yield 'old default es-ES is not a Supertext code' => ['es-ES'];
-        yield 'old default sl-SI' => ['sl-SI'];
+        yield 'no guessed region for en-IE' => ['en-IE'];
+        yield 'no guessed region for de-LI' => ['de-LI'];
+        yield 'Swiss German needs a dialect' => ['gsw'];
+        yield 'sr-RS needs a script' => ['sr-RS'];
         yield 'unknown' => ['xx'];
     }
 
@@ -112,7 +118,60 @@ final class LanguageCodesTest extends TestCase
         self::assertNull(Settings::fromArray([])->versionReports, 'not set: the SDK treats it as on');
 
         // The older list form of the setting still works.
+        self::assertSame(['de' => 'de-AT'], Settings::fromArray(['language_codes' => [['grav' => 'de', 'supertext' => 'de-AT']]])->languageCodes);
         $rows = Settings::fromArray(['language_codes' => [['grav' => 'de', 'supertext' => 'de-AT']]]);
         self::assertSame('de-AT', $rows->targetCode('de'));
+    }
+
+    public function testSanitizeLanguageCodesOnSave(): void
+    {
+        self::assertSame(
+            ['de' => 'de-CH', 'fr-be' => 'fr-FR', 'zh' => 'zh-Hant'],
+            Settings::sanitizeLanguageCodes(['de' => ' de_ch ', 'fr-be' => 'fr-FR', 'it' => '', 'xx' => 'xx-YY', 'zh' => 'ZH-hant']),
+        );
+        // The older list of rows becomes a map, nothing configured is lost.
+        self::assertSame(
+            ['de' => 'de-CH', 'en' => 'en-GB'],
+            Settings::sanitizeLanguageCodes([['grav' => 'de', 'supertext' => 'de-CH'], ['grav' => 'en', 'supertext' => 'en-GB'], ['grav' => '', 'supertext' => 'fr-FR']]),
+        );
+        self::assertSame([], Settings::sanitizeLanguageCodes(null));
+        self::assertSame([], Settings::sanitizeLanguageCodes('de=de-CH'));
+    }
+
+    public function testTranslationReviewIsStoredWithTheLanguage(): void
+    {
+        $settings = Settings::fromArray(['language_codes' => [
+            'de' => 'de-CH',
+            'fr' => ['code' => 'fr-CH', 'review' => true],
+            'IT' => ['code' => '', 'review' => '1'],
+            'es' => ['code' => 'es', 'review' => false],
+        ]]);
+        self::assertSame(['de' => 'de-CH', 'fr' => 'fr-CH', 'es' => 'es'], $settings->languageCodes);
+        self::assertSame(['fr', 'it'], $settings->reviewLanguages);
+        self::assertTrue($settings->reviewFor('fr'));
+        self::assertTrue($settings->reviewFor('it'));
+        self::assertFalse($settings->reviewFor('de'), 'off by default');
+        self::assertSame('it-IT', $settings->targetCode('it'), 'review on with the default Supertext language');
+
+        // An empty review_url turns review off for every language; SUPERTEXT_REVIEW_URL wins over the setting.
+        $off = Settings::fromArray(['review_url' => '', 'language_codes' => ['fr' => ['code' => 'fr-CH', 'review' => true]]]);
+        self::assertSame('', $off->reviewUrl);
+        self::assertFalse($off->reviewFor('fr'));
+        self::assertSame('http://localhost:3000/v1/', Settings::fromArray(['review_url' => ''], null, null, 'http://localhost:3000/v1/')->reviewUrl);
+        self::assertSame('https://review.example/v1/', Settings::fromArray(['review_url' => ' https://review.example/v1/ '], null, null, '')->reviewUrl);
+    }
+
+    public function testSanitizingKeepsTranslationReview(): void
+    {
+        self::assertSame(
+            ['de' => 'de-CH', 'fr' => ['code' => 'fr-CH', 'review' => true], 'it' => ['code' => '', 'review' => true]],
+            Settings::sanitizeLanguageCodes([
+                'de' => 'de_ch',
+                'fr' => ['code' => 'fr-ch', 'review' => true],
+                'it' => ['code' => 'xx', 'review' => true],
+                'es' => ['code' => 'es-XX', 'review' => false],
+                'nl' => ['code' => '', 'review' => false],
+            ]),
+        );
     }
 }

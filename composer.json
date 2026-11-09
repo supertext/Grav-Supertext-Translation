@@ -25,7 +25,15 @@
     },
     "scripts": {
         "test": "phpunit",
-        "docs:screenshots": "sh scripts/docs-screenshots.sh"
+        "docs:screenshots": "sh scripts/docs-screenshots.sh",
+        "docs:movie": [
+            "Composer\\Config::disableProcessTimeout",
+            "sh scripts/docs-movie.sh demo"
+        ],
+        "docs:movie:install": [
+            "Composer\\Config::disableProcessTimeout",
+            "sh scripts/docs-movie.sh install"
+        ]
     },
     "config": {
         "sort-packages": true

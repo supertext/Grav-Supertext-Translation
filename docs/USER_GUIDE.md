@@ -27,7 +27,7 @@ The Supertext panel and its messages appear in your admin language (English, Ger
 
 You can close the panel with **×** at any time. Closing it does not stop a translation that is already running.
 
-Next to each language the panel shows the Supertext language it is translated into, e.g. *de-CH* for Swiss German. A language marked **not mapped** has no Supertext language yet: it can't be ticked, and a note at the top names it. Your administrator chooses the Supertext language for it in the plugin settings.
+Next to each language the panel shows the Supertext language it is translated into, e.g. *de-CH* for Swiss German. Languages without a choice in the plugin settings use Supertext's default (e.g. *de-DE* for `de`, *en-US* for `en`). A language marked **not mapped** has no default either (e.g. `gsw`): it can't be ticked, and a note at the top names it. Your administrator chooses the Supertext language for it in the plugin settings.
 
 ## Review and publish a translation
 
@@ -48,6 +48,7 @@ Good to know:
 - Grav's **Translations** box lists an unpublished translation under *Not translated* as well. That is Grav's way of saying visitors can't see it yet; it disappears from that list once you publish it. Don't use *Create …* there for a language Supertext already translated.
 - If you had the translated language open in the editor while translating it again, switch to another language and back to see the new text.
 - Publishing a translation, or changing its options, does not count as editing it.
+- **Translation review:** if your administrator turned on *Translation review* for a language, reviewers (your colleagues or Supertext linguists) check and correct the translations on the website. Their corrections come into Grav the next time you translate the page into that language: after a review, translate it again. Texts reviewed once keep their corrected wording in later translations.
 
 ## Translate again after the source changes
 
@@ -63,6 +64,38 @@ These languages are never replaced without asking. When you tick one and click *
 
 - **Replace** translates the page again and replaces the edited text.
 - **Cancel** keeps the translation as it is.
+
+## Translate with a file (XLIFF or HTML)
+
+Instead of translating with Supertext's API, you can download a page's texts as a file, have them translated elsewhere (a translator, a translation tool such as Trados, memoQ or Phrase, or Supertext's web app) and import the translated file again. The translation is written exactly like a translation with Supertext: as the language file of the page, new ones unpublished.
+
+**Export for translation:** open the page in the source language and the Supertext panel, then open **Export for translation** at the bottom of the panel.
+
+1. Choose the **File format**:
+   - **XLIFF 1.2 (for translation tools)**: the better choice for translators and translation tools; bold text, links and code appear as protected tags. One file can hold several languages.
+   - **HTML (one language per file)**: for Supertext's web app or anyone who translates HTML. Tick exactly one language.
+2. Tick the languages and click **Download file**. The file is called e.g. `grav-blog-hello-de.xlf` (the page route and the language; without the language for several languages).
+
+The file holds the same texts a translation with Supertext would send: the page content and the translated front matter fields (title, menu label, meta description). A page without texts gives *Nothing to translate.*
+
+**Send it for translation.** Translators must keep the file's structure: in an HTML file the head (the `supertext:` meta tags) and the `data-st-id` attributes must stay as they are. An HTML file can't mark a text as untranslated: imported unchanged, it writes the source text into the translation.
+
+**Import translation:** open the Supertext panel of any page (the file says which page and language it belongs to), open **Import translation**, choose the **Translated file (XLIFF or HTML)** and click **Import translation**. Files up to 10 MB.
+
+- **Also import texts whose source changed since the export** (off by default): texts edited in the source after the export are skipped unless you tick this.
+- **Replace translations edited by hand or not made with Supertext** (off by default): like translating with Supertext, such translations are kept (*It was kept; confirm to replace it.*) unless you tick this.
+
+The panel then shows, per page and language:
+
+| Line | Meaning |
+| --- | --- |
+| *Imported: n* | Texts written into the translation. |
+| *Skipped, source changed since the export: n* | The source text was edited after the export; tick the option above to import them anyway, or export again. |
+| *Not translated in the file: n* | The file has no translation for these texts (XLIFF). |
+| *Formatting changed, not imported: n* | The translation broke or added formatting (tags); fix it in the file or translate these texts again. |
+| *Not in the file: n* | Texts added since the export; translate them with Supertext or export again. |
+
+Grav keeps a translation as one file per language, so texts that weren't imported are written in the source language; translate the page again or import a complete file to fill them. Errors: *This file isn't a valid XLIFF or HTML translation file*, *This file wasn't exported by the Supertext plugin, or its header was removed*, *The file is too large (at most 10 MB)*, *This file belongs to another system (…)* (exported by another Supertext plugin), *The page this file was exported from no longer exists* (also when it was moved: its route changed), *The site has no language …*, *You are not allowed to edit this page.*
 
 ## What is translated
 
@@ -101,3 +134,7 @@ The messages appear in your admin language; the table lists their English wordin
 | This page has no EN version to translate from | The page only exists in other languages. Create the source-language version first. |
 | … text blocks came back untranslated | Supertext returned the page without some blocks. They were kept in the source language; translate again or fix them by hand. |
 | Page permissions deny 'update' on this page | You are not allowed to edit this page. Ask your administrator. |
+
+## Support
+
+Questions, problems or ideas: use the [Supertext support form](https://integrations.supertext.com/en/support?platform=grav). Mention the version of Grav and of the plugin, what you did and what you expected; an error message helps a lot. You get an answer by email, in your language.
