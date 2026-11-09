@@ -301,6 +301,8 @@ Before starting work in this repo, look at its open findings: code scanning aler
 
 Dependabot opens weekly pull requests (minor and patch updates grouped). Major updates the plugin can't take are ignored in `.github/dependabot.yml`:
 
+`.github/workflows/dependabot-merge.yml` merges a minor or patch package update by itself once every other check on its pull request has passed (it waits up to 85 minutes and leaves the pull request alone if a check fails). GitHub Actions updates and majors stay for a person: the workflow's built-in token can't merge changes to workflow files, and a major needs a decision. Merges by the workflow don't start CI on `main`; the weekly health check looks at `main`.
+
 - `phpunit/phpunit` >=13: PHPUnit 13 needs PHP 8.4; the plugin supports PHP 8.3 (CI tests 8.3).
 - `symfony/yaml` >=8: Symfony 8 needs PHP 8.4; the plugin supports PHP 8.3 (CI tests 8.3).
 
