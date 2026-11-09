@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.0.0 — 2026-11-09
+
+First stable release. Every plugin release is now tested end to end against the live Supertext API (`.github/workflows/e2e.yml`).
+
 ### Added
 
 - **Translation review** per target language (Plugins → Supertext Translation → *Supertext language codes* → *Translation review* under the language's list, off by default): translations into a language with review on go through Supertext's review service (Supertext Localization Review), where customers and Supertext linguists correct them on the website with a Chrome extension; corrections come back into Grav with the next translation, and texts translated before keep their (reviewed) wording. Same API key, billing, languages and messages; the other languages keep going directly to Supertext. New setting *Review service* (`review_url`, defaults to Supertext's review service; empty turns review off everywhere; `SUPERTEXT_REVIEW_URL` wins). A language with review on is stored in `language_codes` as `{ code: …, review: true }`; existing settings start with review off. Requests to the review service carry the same User-Agent with the plugin's version (`Grav-Supertext-Translation/<version>`). All four interface languages.

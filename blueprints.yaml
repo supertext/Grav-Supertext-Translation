@@ -1,7 +1,7 @@
 name: Supertext Translation
 slug: supertext-translation
 type: plugin
-version: 0.1.0
+version: 1.0.0
 description: Translate pages into your site's other languages with Supertext AI translation, from the page editor of Admin2.
 icon: language
 author:
