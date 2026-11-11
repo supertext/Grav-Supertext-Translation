@@ -23,7 +23,7 @@ en:
       API_URL: API endpoint
       API_URL_HELP: Only change this if Supertext gives you a different endpoint.
       REVIEW_URL: Review service
-      REVIEW_URL_HELP: 'Address of Supertext’s review service for languages with Translation review on. Leave it empty to turn review off for every language. Only change it if Supertext gives you a different address.'
+      REVIEW_URL_HELP: 'Address of Supertext''s review service for languages with Translation review on. Leave it empty to turn review off for every language. Only change it if Supertext gives you a different address.'
       KEY_CHECK: 'API key check'
       VERSION_REPORTS: 'Send version information to Supertext'
       VERSION_REPORTS_HELP: 'Sends the site URL and the versions of this plugin, the CMS and the runtime to Supertext when you save these settings and after an update, so Supertext support can see which version you run. No content, no API key and no personal data are sent.'
@@ -32,12 +32,12 @@ en:
       SOURCE_LANGUAGE_PLACEHOLDER: Site default language
       SOURCE_LANGUAGE_HELP: Grav language code the translations are made from, e.g. "en". Empty means the site's default language.
       LANGUAGE_CODES: Supertext language codes
-      LANGUAGE_CODES_HELP: 'Which Supertext language each site language is translated into and from. Each language is preselected with its Supertext code (es, nl, de-CH) or its default (de → de-DE, en → en-US, fr → fr-FR, it → it-IT, pt → pt-PT, zh → zh-Hans); choose another variant where you mean one, e.g. de-CH for Swiss German. A language without a default (en-IE, de-LI, gsw) shows — choose — and can’t be translated until you choose one.'
+      LANGUAGE_CODES_HELP: 'Which Supertext language each site language is translated into and from. Each language is preselected with its Supertext code (es, nl, de-CH) or its default (de → de-DE, en → en-US, fr → fr-FR, it → it-IT, pt → pt-PT, zh → zh-Hans); choose another variant where you mean one, e.g. de-CH for Swiss German. A language without a default (en-IE, de-LI, gsw) shows — choose — and can''t be translated until you choose one.'
       POLITENESS: Form of address
       POLITENESS_DEFAULT: Supertext default
       POLITENESS_MORE: Formal (Sie, vous)
       POLITENESS_LESS: Informal (du, tu)
-      POLITENESS_HELP: 'Only applies to languages Supertext offers a formal and an informal form for. The others always get Supertext’s default.'
+      POLITENESS_HELP: 'Only applies to languages Supertext offers a formal and an informal form for. The others always get Supertext''s default.'
       SECTION_CONTENT: What is translated
       HEADER_FIELDS: Front matter fields
       HEADER_FIELDS_HELP: Front matter fields translated together with the page content. Use dots for nested fields, e.g. metadata.description.
@@ -81,8 +81,8 @@ en:
       FILE_NOTHING: 'Nothing to translate.'
       FILE_NO_UPLOAD: 'Please choose a file.'
       FILE_TOO_LARGE: 'The file is too large (at most 10 MB).'
-      FILE_INVALID_FILE: 'This file isn’t a valid XLIFF or HTML translation file.'
-      FILE_MISSING_METADATA: 'This file wasn’t exported by the Supertext plugin, or its header was removed.'
+      FILE_INVALID_FILE: 'This file isn''t a valid XLIFF or HTML translation file.'
+      FILE_MISSING_METADATA: 'This file wasn''t exported by the Supertext plugin, or its header was removed.'
       FILE_OTHER_SYSTEM: 'This file belongs to another system (%s).'
       FILE_NOT_FOUND: 'The page this file was exported from no longer exists.'
       FILE_NO_LANGUAGE: 'The site has no language %s.'
@@ -132,7 +132,7 @@ en:
         NOT_MAPPED: 'not mapped'
         NOT_MAPPED_HINT: 'No Supertext language is chosen yet for: {languages}. An administrator can choose one under Plugins → Supertext Translation → Supertext language codes.'
         EXPORT_TITLE: 'Export for translation'
-        EXPORT_HINT: 'Download the page’s texts for a translator, a translation tool or Supertext’s web app, then import the translated file below.'
+        EXPORT_HINT: 'Download the page''s texts for a translator, a translation tool or Supertext''s web app, then import the translated file below.'
         FILE_FORMAT: 'File format'
         FORMAT_XLIFF: 'XLIFF 1.2 (for translation tools)'
         FORMAT_HTML: 'HTML (one language per file)'
@@ -153,8 +153,8 @@ en:
         KEYCHECK_OK: 'API key checked: the connection to Supertext works.'
         KEYCHECK_INVALID: 'Supertext rejected the API key. Check that you copied the whole key, or generate a new one at supertext.com → Integrations → API (requires the Admin role). No Supertext account yet? Create one at supertext.com.'
         KEYCHECK_MISSING: 'No API key is set yet. No Supertext account yet? Create one at supertext.com. Generate your API key at supertext.com → Integrations → API (requires the Admin role).'
-        KEYCHECK_UNREACHABLE: 'The API key couldn’t be checked because Supertext can’t be reached. The settings are saved; check again later.'
-        KEYCHECK_ERROR: 'The API key couldn’t be checked: Supertext answered with an error ({status}). The settings are saved; check again later.'
+        KEYCHECK_UNREACHABLE: 'The API key couldn''t be checked because Supertext can''t be reached. The settings are saved; check again later.'
+        KEYCHECK_ERROR: 'The API key couldn''t be checked: Supertext answered with an error ({status}). The settings are saved; check again later.'
         CHECKED_AT: 'Checked {time}'
         NOT_CHECKED: 'Not checked yet. The API key is checked every time you save these settings.'
         CHECK_AGAIN: 'Check again'
@@ -164,13 +164,13 @@ en:
         LOAD_ERROR: 'The Supertext status could not be loaded ({error}). Enable the plugin, save the settings and reload this page.'
         LANG_SOURCE: 'source language, sent as {code}'
         LANG_CHOOSE: '— choose —'
-        LANG_NOT_MAPPED: 'Not mapped: Supertext has no default for {code}. Choose a Supertext language, or this language can’t be translated.'
+        LANG_NOT_MAPPED: 'Not mapped: Supertext has no default for {code}. Choose a Supertext language, or this language can''t be translated.'
         LANG_DEFAULT: 'Default for {code}: choose another Supertext language if you mean a different variant.'
-        LANG_NO_POLITENESS: 'Supertext offers no formal or informal form for this language: Supertext’s default is used.'
+        LANG_NO_POLITENESS: 'Supertext offers no formal or informal form for this language: Supertext''s default is used.'
         LANG_OTHER: '{code} (not in the list)'
         LANG_UNAVAILABLE: 'Enable the plugin and reload this page to choose the languages.'
         LANG_REVIEW: Translation review
-        LANG_REVIEW_HELP: 'Translations into this language go through Supertext’s review service, so reviewers can check and correct them on the website with the Supertext Localization Review extension. Their corrections are used the next time the page is translated.'
+        LANG_REVIEW_HELP: 'Translations into this language go through Supertext''s review service, so reviewers can check and correct them on the website with the Supertext Localization Review extension. Their corrections are used the next time the page is translated.'
         LANG_REVIEW_OFF: 'Translation review is off for every language: the Review service setting is empty.'
 de:
   PLUGIN_SUPERTEXT_TRANSLATION:
