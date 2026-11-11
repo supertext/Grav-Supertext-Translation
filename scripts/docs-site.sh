@@ -9,7 +9,7 @@
 # Needs PHP 8.3 with curl. Grav comes from its GitHub release, cached in $CACHE (CACHE_DIR=…).
 REPO=$(pwd)
 CACHE=${CACHE_DIR:-$REPO/.cache}
-GRAV_VERSION=${GRAV_VERSION:-2.2.28}
+GRAV_VERSION=${GRAV_VERSION:-2.2.29}
 GRAV_PORT=${GRAV_PORT:-8090}
 API_PORT=${API_PORT:-8089}
 BASE="http://127.0.0.1:$GRAV_PORT"

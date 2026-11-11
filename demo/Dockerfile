@@ -1,11 +1,12 @@
 # Grav 2 + Admin2 demo with the Supertext Translation plugin.
 # Build context is the repository root:  docker build -f demo/Dockerfile .
-FROM php:8.3-apache
+FROM php:8.5-apache
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends libzip-dev libpng-dev libjpeg62-turbo-dev libfreetype6-dev libicu-dev unzip \
  && docker-php-ext-configure gd --with-freetype --with-jpeg \
- && docker-php-ext-install -j"$(nproc)" gd zip intl opcache \
+ && docker-php-ext-install -j"$(nproc)" gd zip intl \
+ && { php -m | grep -q 'Zend OPcache' || docker-php-ext-install opcache; } \
  && a2enmod rewrite expires headers \
  && rm -rf /var/lib/apt/lists/*
 
@@ -15,7 +16,7 @@ RUN a2enconf grav
 
 # Grav core with Admin2 and the API plugin bundled (GitHub release asset:
 # getgrav.org only serves the latest version).
-ARG GRAV_VERSION=2.2.28
+ARG GRAV_VERSION=2.2.29
 RUN curl -fsSL -o /tmp/grav.zip "https://github.com/getgrav/grav/releases/download/${GRAV_VERSION}/grav-admin-v${GRAV_VERSION}.zip" \
  && unzip -q /tmp/grav.zip -d /tmp \
  && rm -rf /var/www/html \

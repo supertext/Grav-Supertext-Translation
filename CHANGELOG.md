@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Tested with Grav 2.2.29 (CI and demo; the demo now runs on PHP 8.5).
+
 ## 1.0.0 — 2026-11-09
 
 First stable release. Every plugin release is now tested end to end against the live Supertext API (`.github/workflows/e2e.yml`).
