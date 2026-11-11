@@ -29,12 +29,12 @@ const EN = {
     LANG_SOURCE: 'source language, sent as {code}',
     LANG_CHOOSE: '— choose —',
     LANG_DEFAULT: 'Default for {code}: choose another Supertext language if you mean a different variant.',
-    LANG_NOT_MAPPED: 'Not mapped: Supertext has no default for {code}. Choose a Supertext language, or this language can’t be translated.',
-    LANG_NO_POLITENESS: 'Supertext offers no formal or informal form for this language: Supertext’s default is used.',
+    LANG_NOT_MAPPED: 'Not mapped: Supertext has no default for {code}. Choose a Supertext language, or this language can\'t be translated.',
+    LANG_NO_POLITENESS: 'Supertext offers no formal or informal form for this language: Supertext\'s default is used.',
     LANG_OTHER: '{code} (not in the list)',
     LANG_UNAVAILABLE: 'Enable the plugin and reload this page to choose the languages.',
     LANG_REVIEW: 'Translation review',
-    LANG_REVIEW_HELP: 'Translations into this language go through Supertext’s review service, so reviewers can check and correct them on the website with the Supertext Localization Review extension. Their corrections are used the next time the page is translated.',
+    LANG_REVIEW_HELP: 'Translations into this language go through Supertext\'s review service, so reviewers can check and correct them on the website with the Supertext Localization Review extension. Their corrections are used the next time the page is translated.',
     LANG_REVIEW_OFF: 'Translation review is off for every language: the Review service setting is empty.',
 };
 
