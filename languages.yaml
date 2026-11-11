@@ -8,7 +8,8 @@
 #                                    The API key check texts (FIELDS.KEYCHECK_*) are the Commando Center's.
 #
 # Every key exists in en, de, fr and it (tests/LanguagesTest.php). Formal address (Sie, vous, Lei).
-# Use ’ for apostrophes: a straight ' is a quote character in ICU MessageFormat.
+# English uses straight apostrophes (''), French and Italian ’. In the ICU strings a straight ' is
+# only special right before {, } or #: never put one there.
 en:
   PLUGIN_SUPERTEXT_TRANSLATION:
     PANEL_LABEL: Supertext translation
