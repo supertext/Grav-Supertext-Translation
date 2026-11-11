@@ -55,7 +55,7 @@ const EN = {
     NOT_MAPPED: 'not mapped',
     NOT_MAPPED_HINT: 'No Supertext language is chosen yet for: {languages}. An administrator can choose one under Plugins → Supertext Translation → Supertext language codes.',
     EXPORT_TITLE: 'Export for translation',
-    EXPORT_HINT: 'Download the page’s texts for a translator, a translation tool or Supertext’s web app, then import the translated file below.',
+    EXPORT_HINT: 'Download the page\'s texts for a translator, a translation tool or Supertext\'s web app, then import the translated file below.',
     FILE_FORMAT: 'File format',
     FORMAT_XLIFF: 'XLIFF 1.2 (for translation tools)',
     FORMAT_HTML: 'HTML (one language per file)',
