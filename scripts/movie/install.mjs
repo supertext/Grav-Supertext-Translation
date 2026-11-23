@@ -177,8 +177,8 @@ await kit.say('Under Languages, every site language has its Supertext language.'
 		await kit.moveTo(german);
 	},
 });
-await kit.say('Open the list to pick a variant. For German, we keep Swiss High German, d e C H.', {
-	caption: 'Deutsch → <b>Swiss High German (de-CH)</b>',
+await kit.say('Open the list to pick a variant. For German, we keep German (Switzerland), d e C H.', {
+	caption: 'Deutsch → <b>German (Switzerland) (de-CH)</b>',
 	during: async () => {
 		await kit.click(german);
 		// A native drop-down isn't recorded: show the options as a list for a moment.

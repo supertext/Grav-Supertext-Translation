@@ -51,7 +51,7 @@ function targetName(target) {
     const locale = window.__GRAV_I18N && window.__GRAV_I18N.locale;
     if (locale && typeof Intl !== 'undefined' && Intl.DisplayNames && !String(target.code).includes('-u-')) {
         try {
-            const name = new Intl.DisplayNames([locale], { type: 'language' }).of(target.code);
+            const name = new Intl.DisplayNames([locale], { type: 'language', languageDisplay: 'standard' }).of(target.code);
             if (name && name.toLowerCase() !== String(target.code).toLowerCase()) return name;
         } catch (e) { /* fall back to the English name */ }
     }
