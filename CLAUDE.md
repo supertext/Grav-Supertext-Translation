@@ -100,3 +100,7 @@ Lessons from testing against the live API (October 2026), to apply in every plug
 - Movies: `composer docs:movie` (`scripts/movie/demo.mjs`, `docs/images/demo.gif` in the README and an MP4) when the panel changes, `composer docs:movie:install` (`scripts/movie/install.mjs`, MP4 only) when the installation steps or the settings page change; shared kit in `scripts/movie/` (see `docs/DEVELOPER.md` → *Demo movie*).
 - End-to-end tests against the real Supertext API: `.github/workflows/e2e.yml` with `tests/e2e/` (see "End-to-end tests" in `docs/DEVELOPER.md`). The key is only the GitHub secret `SUPERTEXT_API_KEY`, set by Remy; sessions don't use a live key. Behaviour changes need matching checks in `tests/e2e/live.mjs`.
 - Demo: `demo/` (Dockerfile built from the repo root, `entrypoint.sh`, `seed-accounts.php`, `configure.php`). Railway service `Grav` in the project `supertext-cms-demos-php`, https://grav-production.up.railway.app.
+
+## Live E2E runs share one API key (always)
+
+Every push to `main` that touches the plugin, the demo or the tests starts the live E2E run, and all Supertext plugin repos share one Supertext API key, which is rate-limited per second. When the same kind of change goes to several repos, push them one repo at a time, at least 3 minutes apart (a loop with `sleep 180`), never in parallel. Docs-only changes (`docs/`, `README.md`, `CHANGELOG.md`, `CLAUDE.md`) don't start it and can go together. A live run that failed with `RATE_LIMIT_EXCEEDED` collided with another repo's run, it isn't a bug: rerun it on its own.
