@@ -1,5 +1,6 @@
 # Sourced by docs-screenshots.sh and docs-movie.sh: builds a throwaway Grav site with the demo's
 # entrypoint (random local-only passwords) and starts the stand-in Supertext API and Grav.
+# LIVE_API_KEY=<key> makes Grav translate with the real Supertext API (CI's screenshots).
 #
 #   . scripts/docs-site.sh
 #   start_site screenshots          # work folder name under $CACHE; SITE_API_KEY= (empty) starts without an API key
@@ -43,10 +44,18 @@ start_site() {
 
   php -S "127.0.0.1:$API_PORT" scripts/stand-in-api/router.php > "$WORK/stand-in.log" 2>&1 &
   API_PID=$!
-  # The stand-in also answers the Commando Center's reports, so nothing is reported to Supertext.
-  (cd "$WORK/grav" && SUPERTEXT_API_KEY="${SITE_API_KEY-Supertext-Auth-Key stand-in}" SUPERTEXT_API_URL="http://127.0.0.1:$API_PORT/v1/" \
-    SUPERTEXT_REPORT_URL="http://127.0.0.1:$API_PORT/api/v1/report" \
-    exec php -S "127.0.0.1:$GRAV_PORT" system/router.php > "$WORK/grav.log" 2>&1) &
+  # The stand-in always answers the Commando Center's reports, so nothing is reported to Supertext.
+  # With LIVE_API_KEY (CI: the secret SUPERTEXT_API_KEY) Grav translates with the real Supertext API,
+  # so the screenshots show real translations; without it, the stand-in translates.
+  if [ -n "${LIVE_API_KEY:-}" ]; then
+    (cd "$WORK/grav" && SUPERTEXT_API_KEY="$LIVE_API_KEY" \
+      SUPERTEXT_REPORT_URL="http://127.0.0.1:$API_PORT/api/v1/report" \
+      exec php -S "127.0.0.1:$GRAV_PORT" system/router.php > "$WORK/grav.log" 2>&1) &
+  else
+    (cd "$WORK/grav" && SUPERTEXT_API_KEY="${SITE_API_KEY-Supertext-Auth-Key stand-in}" SUPERTEXT_API_URL="http://127.0.0.1:$API_PORT/v1/" \
+      SUPERTEXT_REPORT_URL="http://127.0.0.1:$API_PORT/api/v1/report" \
+      exec php -S "127.0.0.1:$GRAV_PORT" system/router.php > "$WORK/grav.log" 2>&1) &
+  fi
   GRAV_PID=$!
   trap stop_site EXIT
   sleep 2

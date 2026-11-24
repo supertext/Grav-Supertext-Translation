@@ -61,7 +61,8 @@ final class Reporting
     ) {
     }
 
-    public function reporter(): InstallationReporter
+    /** @param (callable(): iterable<mixed>)|null $languages the language mapping every report of this reporter carries */
+    public function reporter(?callable $languages = null): InstallationReporter
     {
         return new InstallationReporter(
             enabled: $this->enabled,
@@ -76,6 +77,7 @@ final class Reporting
             reportUrl: $this->reportUrl,
             transport: $this->transport !== null ? new ReportTransport($this->transport) : null,
             now: is_callable($this->now) ? $this->now : null,
+            languages: $languages,
         );
     }
 
@@ -110,6 +112,26 @@ final class Reporting
                 self::TEST_CONNECTION => $reporter->testConnection($state, $apiKey),
                 default => $reporter->onRequest($state, $apiKey),
             };
+            $this->store->save($result->state);
+
+            return $result;
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    /**
+     * "Send configuration to Supertext": the installed plugins and themes and the language mapping in
+     * one `extensions` report, now (also after a recent failure), only while reports are on.
+     *
+     * @param list<array{name: string, version?: string, active?: bool, type?: string}> $extensions
+     * @param list<array{code: string, supertext: ?string}> $languages
+     * @return ReporterResult|null null if something unexpected went wrong (never thrown)
+     */
+    public function sendConfiguration(array $extensions, array $languages): ?ReporterResult
+    {
+        try {
+            $result = $this->reporter(static fn (): array => $languages)->sendExtensions($this->store->load(), $extensions);
             $this->store->save($result->state);
 
             return $result;

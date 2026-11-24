@@ -11,7 +11,7 @@ author:
 homepage: https://github.com/Supertext/Grav-Supertext-Translation
 keywords: translation, multilanguage, supertext, ai, localization
 bugs: https://github.com/Supertext/Grav-Supertext-Translation/issues
-docs: https://github.com/Supertext/Grav-Supertext-Translation/blob/main/docs/INSTALLATION.md
+docs: https://github.com/supertext/Grav-Supertext-Translation/tree/main#supertext-translation-for-grav
 license: MIT
 compatibility:
   grav: ['2.0']

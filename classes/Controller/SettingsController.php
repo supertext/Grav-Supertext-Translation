@@ -13,7 +13,9 @@ use Grav\Plugin\SupertextTranslation\Reporting\Reporting;
 use Grav\Plugin\SupertextTranslation\Settings;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Supertext\GravTranslation\PluginHealth\InstallationReporter;
 use Supertext\GravTranslation\PluginHealth\KeyCheck;
+use Symfony\Component\Yaml\Yaml;
 use Supertext\GravTranslation\Sdk\V1\Languages;
 
 /**
@@ -22,8 +24,10 @@ use Supertext\GravTranslation\Sdk\V1\Languages;
  *   GET  /api/v1/supertext/settings   site languages with their Supertext codes, the latest API
  *                                     key check and whether version reports are on
  *   POST /api/v1/supertext/check      checks the API key again ("Check again")
+ *   POST /api/v1/supertext/configuration  "Send configuration to Supertext": installed plugins and
+ *                                     themes and the language mapping (needs api.config.write)
  *
- * Both need the right to read the configuration (api.config.read).
+ * The first two need the right to read the configuration (api.config.read).
  */
 final class SettingsController extends AbstractApiController
 {
@@ -49,6 +53,62 @@ final class SettingsController extends AbstractApiController
         $result = $reporting->run(Reporting::TEST_CONNECTION, $settings->apiKey);
 
         return ApiResponse::create($this->payload($settings, $reporting, $result->check ?? $reporting->lastCheck()));
+    }
+
+    public function configuration(ServerRequestInterface $request): ResponseInterface
+    {
+        $this->requirePermission($request, 'api.config.write');
+        $settings = Settings::fromConfig((array)$this->config->get('plugins.supertext-translation', []));
+        $reporting = GravReporting::create($this->grav, $settings);
+        $extensions = InstallationReporter::normalizeExtensions($this->installedExtensions());
+        $languages = [];
+        foreach ((array)$this->grav['language']->getLanguages() as $code) {
+            $languages[] = ['code' => (string)$code, 'supertext' => $settings->targetCodeOrNull((string)$code)];
+        }
+        $languages = InstallationReporter::normalizeLanguages($languages);
+        $result = $reporting->enabled ? $reporting->sendConfiguration($extensions, $languages) : null;
+
+        return ApiResponse::create([
+            'enabled' => $reporting->enabled,
+            'sent' => (bool)$result?->sent,
+            'extensions' => count($extensions),
+            'languages' => count($languages),
+        ]);
+    }
+
+    /**
+     * The plugins and themes in user/plugins and user/themes: name and version from their
+     * blueprints.yaml, enabled from the configuration (themes: the active theme).
+     *
+     * @return list<array{name: string, version: string, active: bool, type: string}>
+     */
+    private function installedExtensions(): array
+    {
+        $list = [];
+        $locator = $this->grav['locator'];
+        $activeTheme = (string)$this->config->get('system.pages.theme', '');
+        foreach (['plugins' => 'plugin', 'themes' => 'theme'] as $folder => $type) {
+            $dir = $locator->findResource($folder . '://', true);
+            if (!is_string($dir) || !is_dir($dir)) {
+                continue;
+            }
+            foreach (glob($dir . '/*/blueprints.yaml') ?: [] as $file) {
+                $slug = basename(dirname($file));
+                try {
+                    $blueprint = (array)Yaml::parse((string)file_get_contents($file));
+                } catch (\Throwable) {
+                    $blueprint = [];
+                }
+                $list[] = [
+                    'name' => (string)($blueprint['name'] ?? $slug),
+                    'version' => (string)($blueprint['version'] ?? ''),
+                    'active' => $type === 'plugin' ? (bool)$this->config->get("plugins.{$slug}.enabled", false) : $slug === $activeTheme,
+                    'type' => $type,
+                ];
+            }
+        }
+
+        return $list;
     }
 
     /** @return array<string, mixed> */

@@ -1,6 +1,7 @@
 #!/bin/sh
-# Regenerates the screenshots in docs/images/ from the demo, against the stand-in Supertext API
-# (scripts/stand-in-api), which returns real translations of the sample pages.
+# Regenerates the screenshots in docs/images/ from the demo. With LIVE_API_KEY (CI: the secret
+# SUPERTEXT_API_KEY) the demo translates with the real Supertext API, so the images show real
+# translations; without it, against the stand-in Supertext API (scripts/stand-in-api).
 #
 #   composer docs:screenshots
 #
@@ -13,7 +14,7 @@ start_site screenshots
 
 OUT="$REPO/docs/images" python3 scripts/screenshots.py
 
-if grep -q "no translation for" "$WORK/stand-in.log"; then
+if [ -z "${LIVE_API_KEY:-}" ] && grep -q "no translation for" "$WORK/stand-in.log"; then
   echo "Some text had no stand-in translation (see $WORK/stand-in.log); add it to scripts/stand-in-api/translations.php." >&2
   exit 1
 fi

@@ -64,6 +64,7 @@ class SupertextTranslationPlugin extends Plugin
         $routes->post('/supertext/import', [TranslationController::class, 'import']);
         $routes->get('/supertext/settings', [SettingsController::class, 'show']);
         $routes->post('/supertext/check', [SettingsController::class, 'check']);
+        $routes->post('/supertext/configuration', [SettingsController::class, 'configuration']);
         $routes->get(Reporting::PING_PATH, [PingController::class, 'ping']);
     }
 

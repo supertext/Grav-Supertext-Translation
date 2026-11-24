@@ -6,7 +6,8 @@
  * Admin2 loads this file through GET /api/v1/gpm/plugins/supertext-translation/fields and
  * defines it under the tag in window.__GRAV_FIELD_TAG. The field has no value of its own
  * (blueprints.yaml: validate.ignore). Data: GET /api/v1/supertext/settings; "Check again":
- * POST /api/v1/supertext/check (classes/Controller/SettingsController.php).
+ * POST /api/v1/supertext/check; "Send configuration to Supertext": POST /api/v1/supertext/configuration
+ * (classes/Controller/SettingsController.php).
  *
  * The key is checked on the server every time the settings are saved; this field reloads a
  * few seconds after a button is pressed on the page (e.g. Save) to show the new result.
@@ -26,6 +27,12 @@ const EN = {
     NOT_CHECKED: 'Not checked yet. The API key is checked every time you save these settings.',
     CHECK_AGAIN: 'Check again',
     CHECKING: 'Checking…',
+    SEND_CONFIG: 'Send configuration to Supertext',
+    SENDING_CONFIG: 'Sending…',
+    CONFIG_HELP: 'Sends Supertext the plugins and themes installed on this site (name, version, active or not) and its Supertext language mappings, so Supertext support can help better. Nothing else is sent.',
+    CONFIG_SENT: 'Sent: {extensions} plugins and themes, {languages} languages.',
+    CONFIG_FAILED: 'The configuration couldn\'t be sent. Try again later.',
+    CONFIG_OFF: 'Turn on "Send version information to Supertext" to send the configuration.',
     REPORTS_ENV_OFF: 'The environment variable SUPERTEXT_VERSION_REPORTS={value} turns version reports off, whatever the setting below says.',
     REPORTS_ENV_ON: 'The environment variable SUPERTEXT_VERSION_REPORTS={value} turns version reports on, whatever the setting below says.',
     LOAD_ERROR: 'The Supertext status could not be loaded ({error}). Enable the plugin, save the settings and reload this page.',
@@ -143,6 +150,25 @@ class SupertextStatusField extends HTMLElement {
         this._render();
     }
 
+    /** "Send configuration to Supertext" (needs api.config.write, like saving these settings). */
+    async _sendConfig() {
+        this._sending = true;
+        this._configResult = null;
+        this._render();
+        try {
+            const r = await this._call('POST', '/supertext/configuration');
+            this._configResult = !r.enabled
+                ? { tone: 'warn', text: t('CONFIG_OFF') }
+                : r.sent
+                    ? { tone: 'ok', text: t('CONFIG_SENT', { extensions: r.extensions, languages: r.languages }) }
+                    : { tone: 'warn', text: t('CONFIG_FAILED') };
+        } catch (e) {
+            this._configResult = { tone: 'error', text: e.message };
+        }
+        this._sending = false;
+        this._render();
+    }
+
     _date(iso) {
         const d = new Date(iso);
         const locale = (window.__GRAV_I18N && window.__GRAV_I18N.locale) || undefined;
@@ -176,6 +202,9 @@ class SupertextStatusField extends HTMLElement {
                 body += `<p class="sts-note">${esc(t(d.reports.enabled ? 'REPORTS_ENV_ON' : 'REPORTS_ENV_OFF', { value: env }))}</p>`;
             }
             body += `<button type="button" class="sts-btn" data-action="check" ${this._busy ? 'disabled' : ''}>${esc(t(this._busy ? 'CHECKING' : 'CHECK_AGAIN'))}</button>`;
+            body += `<div class="sts-config"><button type="button" class="sts-btn" data-action="config" data-testid="supertext-send-config" ${this._sending ? 'disabled' : ''}>${esc(t(this._sending ? 'SENDING_CONFIG' : 'SEND_CONFIG'))}</button>
+                <p class="sts-note">${esc(t('CONFIG_HELP'))}</p>
+                ${this._configResult ? `<div class="sts-box sts-${this._configResult.tone}" role="status">${esc(this._configResult.text)}</div>` : ''}</div>`;
         }
 
         this.innerHTML = `
@@ -191,11 +220,15 @@ class SupertextStatusField extends HTMLElement {
                 ${TAG} .sts-note { margin: 0 0 10px; color: var(--muted-foreground, #6b7280); }
                 ${TAG} .sts-btn { border: 1px solid var(--border, #d1d5db); background: var(--background, #fff); color: var(--foreground, #111827); border-radius: 6px; padding: 6px 12px; font: inherit; font-weight: 500; cursor: pointer; }
                 ${TAG} .sts-btn[disabled] { opacity: .5; cursor: not-allowed; }
+                ${TAG} .sts-config { margin-top: 16px; }
+                ${TAG} .sts-config .sts-note { margin: 6px 0 10px; }
             </style>
             ${body}`;
 
         const button = this.querySelector('[data-action="check"]');
         if (button) button.addEventListener('click', () => this._check());
+        const config = this.querySelector('[data-action="config"]');
+        if (config) config.addEventListener('click', () => this._sendConfig());
     }
 }
 

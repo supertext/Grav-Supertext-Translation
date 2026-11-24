@@ -151,7 +151,7 @@ All settings are in **Plugins → Supertext Translation**:
 | --- | --- | --- | --- |
 | Plugin status | `enabled` | enabled | Turns the plugin (button and API routes) on or off. |
 | API key | `api_key` | empty | Your Supertext API key. Empty: the `SUPERTEXT_API_KEY` environment variable is used. |
-| API key check | – | – | Shows the latest automatic check of the key (not a setting). **Check again** checks it now. |
+| API key check | – | – | Shows the latest automatic check of the key (not a setting). **Check again** checks it now. **Send configuration to Supertext** sends the installed plugins and themes and the language mapping (see [Version information](#version-information-and-the-ping-address)). |
 | API endpoint | `api_url` | `https://api.supertext.com/v1/` | Only change it if Supertext tells you to. |
 | Send version information to Supertext | `version_reports` | enabled | Sends the site URL and the versions of this plugin, Grav and PHP to Supertext when you save these settings and after an update, so Supertext support can see which version you run. No content, no API key and no personal data. See [Version information](#version-information-and-the-ping-address). The environment variable `SUPERTEXT_VERSION_REPORTS=0` turns it off (and `1` on) whatever the setting says. |
 | Source language | `source_language` | empty | Grav language code the translations are made from. Empty: the site's default language. |
@@ -200,6 +200,8 @@ So that Supertext support knows which versions are in use, the plugin sends a sh
 - **When:** after you save the plugin settings, and after an update of the plugin, Grav or PHP (noticed the next time someone opens the Supertext panel, translates or opens the plugin settings). It is sent after the page has been delivered, never slows down the admin, and a failed report is simply tried again an hour later.
 - **What:** the site URL (as Grav knows it), the versions of the plugin, Grav, PHP and the bundled Supertext SDK, whether an API key is set, the result of the latest API key check (*ok*, *invalid*, *missing*, *unreachable*, *error*, with the HTTP status), and the ping address below. **Never** page content, the API key itself or personal data. (The key's SHA-256 fingerprint is kept on your server, in `user/data/supertext-translation/reporter.json`, only to notice that the key changed; it is never sent.)
 - **Turn it off:** set **Send version information to Supertext** to *Disabled* and save, or set the environment variable `SUPERTEXT_VERSION_REPORTS=0` for the web server (with Apache and `mod_php`: `PassEnv SUPERTEXT_VERSION_REPORTS`). Then nothing is sent. The API key check on the settings page keeps working.
+
+**Send configuration to Supertext** (button below *Check again* on the plugin settings, for users who may change the configuration) sends, only when you click it, the plugins and themes installed on this site (name, version, enabled or not, from their `blueprints.yaml`) and every site language with the Supertext language it is translated into (e.g. `de` → `de-CH`, empty when a language has none), so Supertext support can spot conflicts and languages that can't be translated yet. Nothing else is sent; the report carries the site URL like every other. It sends right away, also shortly after a failed report, but only while version information is on; otherwise the page asks you to turn it on.
 
 **Ping address.** So that Supertext can check whether your site can be reached from the internet, the plugin answers a public address:
 

@@ -176,7 +176,7 @@ async def main():
         await editor.locator(f"{PANEL_TAG} button[data-action=translate]").click()
         await editor.locator(f"{PANEL_TAG} .st-spinner").wait_for()
         await shot(editor, "panel-translating.png", await panel_clip(editor))
-        await editor.locator(f"{PANEL_TAG} .st-results").wait_for(timeout=60000)
+        await editor.locator(f"{PANEL_TAG} .st-results").wait_for(timeout=300000)  # the real API takes a while
         await editor.wait_for_timeout(800)
         await shot(editor, "panel-after.png", await panel_clip(editor))
 

@@ -3,9 +3,9 @@ name: E2E
 # 1. The demo image (demo/Dockerfile) is built once and started against the REAL Supertext
 #    API (secret SUPERTEXT_API_KEY): language list check and the end-to-end test
 #    (tests/e2e), so language mapping and the live API's behaviour are tested.
-# 2. The docs screenshots are taken against the stand-in API (scripts/docs-screenshots.sh),
-#    so the images don't change with every machine translation. Changed images are
-#    committed to main.
+# 2. The docs screenshots (scripts/docs-screenshots.sh) use the same secret, so the guides show
+#    real Supertext translations; without it (forks) the stand-in API translates. Version
+#    reports always go to the stand-in. Changed images are committed to main.
 # See "End-to-end tests" and "Screenshots" in docs/DEVELOPER.md.
 
 on:
@@ -139,7 +139,7 @@ jobs:
           EDITOR_PASSWORD: ${{ env.DEMO_EDITOR_PASSWORD }}
         run: node live.mjs
 
-      # --- 2. Docs screenshots against the stand-in ----------------------------------------
+      # --- 2. Docs screenshots: real translations (stand-in only without the key) ----------
       - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
         if: success() || failure()
         with:
@@ -147,17 +147,20 @@ jobs:
           extensions: curl, dom, gd, intl, mbstring, zip
           coverage: none
 
-      - name: Screenshots against the stand-in API
+      - name: Screenshots with the real Supertext API
         id: shots
         if: success() || failure()
         env:
           CACHE_DIR: ${{ runner.temp }}/screenshots
+          LIVE_API_KEY: ${{ secrets.SUPERTEXT_API_KEY }}
         run: |
           python3 -m venv "$RUNNER_TEMP/venv"
           "$RUNNER_TEMP/venv/bin/pip" install --quiet -r scripts/requirements-screenshots.txt
           "$RUNNER_TEMP/venv/bin/python" -m playwright install --with-deps chromium
           # The script builds its own Grav site with the demo's entrypoint and starts the stand-in
-          # (which also takes the version reports, SUPERTEXT_REPORT_URL).
+          # (which takes the version reports, SUPERTEXT_REPORT_URL, and translates only without
+          # LIVE_API_KEY).
+          [ -n "$LIVE_API_KEY" ] || echo "::warning::Secret SUPERTEXT_API_KEY is not set: screenshots show the stand-in's translations."
           PATH="$RUNNER_TEMP/venv/bin:$PATH" sh scripts/docs-screenshots.sh
 
       - name: Did the screenshots change?
@@ -215,7 +218,7 @@ jobs:
           name: docs-images
           path: docs/images/
 
-      # Straight to main, no pull request to review: the images come from the stand-in, and a push
+      # Straight to main, no pull request to review (Remy can't review ~30 × 5 images a week), and a push
       # with the workflow's own token starts no other workflow. See "End-to-end tests" in docs/DEVELOPER.md.
       - name: Commit the images to main
         env:

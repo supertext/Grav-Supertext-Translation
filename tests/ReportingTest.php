@@ -176,6 +176,34 @@ final class ReportingTest extends TestCase
         self::assertSame('installed', $this->reporting()->run(Reporting::ON_REQUEST, 'secret-key')?->event);
     }
 
+    public function testSendConfigurationSendsPluginsAndTheLanguageMapping(): void
+    {
+        $this->http->reportStatus = 503;
+        $this->reporting()->run(Reporting::AFTER_SETTINGS_SAVED, 'secret-key');
+        $this->http->reportStatus = 202;
+        $this->http->reports = [];
+
+        $result = $this->reporting()->sendConfiguration(
+            [['name' => 'Admin2', 'version' => '2.0.1', 'active' => true, 'type' => 'plugin'], ['name' => 'Quark', 'version' => '2.0.4', 'active' => false, 'type' => 'theme']],
+            [['code' => 'en', 'supertext' => 'en-US'], ['code' => 'de', 'supertext' => 'de-DE'], ['code' => 'gsw', 'supertext' => null]],
+        );
+
+        self::assertSame('extensions', $result?->event);
+        self::assertTrue($result?->sent, 'sent right away, also within the hour after a failed report');
+        $report = end($this->http->reports);
+        self::assertSame('extensions', $report['event']);
+        self::assertSame(['name' => 'Quark', 'version' => '2.0.4', 'active' => false, 'type' => 'theme'], $report['extensions'][1]);
+        self::assertSame([['code' => 'en', 'supertext' => 'en-US'], ['code' => 'de', 'supertext' => 'de-DE'], ['code' => 'gsw', 'supertext' => null]], $report['languages']);
+    }
+
+    public function testSendConfigurationSendsNothingWithReportsOff(): void
+    {
+        $result = $this->reporting(enabled: false)->sendConfiguration([['name' => 'Admin2']], [['code' => 'de', 'supertext' => 'de-DE']]);
+
+        self::assertFalse((bool) $result?->sent);
+        self::assertSame([], $this->http->reports);
+    }
+
     public function testBackEndRequestsRunAfterTheResponse(): void
     {
         $this->reporting()->runLater(Reporting::ON_REQUEST, 'secret-key');
@@ -238,6 +266,7 @@ final class ReportingTest extends TestCase
 
         self::assertNull($reporting->run(Reporting::ON_REQUEST, 'secret-key')?->event, 'no new installed report after the update');
         self::assertSame([], $this->http->requests);
-        self::assertSame($old, file_get_contents($this->dir . '/reporter.json'), 'same file format');
+        // Plugin Health 0.2+ adds keyChecks and reportedKeyStatuses (null with one key); everything else is kept.
+        self::assertSame(json_decode($old, true) + ['keyChecks' => null, 'reportedKeyStatuses' => null], json_decode((string) file_get_contents($this->dir . '/reporter.json'), true), 'same file format');
     }
 }
