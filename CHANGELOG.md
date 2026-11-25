@@ -6,7 +6,8 @@
 - Changed: the plugin's *Documentation* link (`docs` in `blueprints.yaml`) opens the README instead of the installation guide.
 - Changed: the screenshots in the guides show real Supertext translations (taken with the live API in CI instead of the stand-in's fixed texts).
 - Changed: language lists name Supertext's languages the way Supertext's own language list does, in the interface language: *German (Switzerland)*, *Deutsch (Schweiz)*, *allemand (Suisse)*, *tedesco (Svizzera)* instead of *Swiss High German*, *Schweizer Hochdeutsch*, *allemand suisse*, *alto tedesco svizzero* (likewise *French (Switzerland)*, *English (United States)* …).
-- Tested with Grav 2.2.30 (CI and demo; the demo now runs on PHP 8.5).
+- Tested with Grav 2.2.35 (CI and demo; the demo now runs on PHP 8.5).
+- Added: tested with PHP 8.6 (the unit tests now run on PHP 8.3 to 8.6).
 
 ## 1.0.0 — 2026-11-09
 
