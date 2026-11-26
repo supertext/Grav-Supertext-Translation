@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.1.0 — 2026-11-26
+
 - Added: Indonesian, Romanian, Thai and Vietnamese (`id`, `ro`, `th`, `vi`) can be chosen as Supertext languages, all with formal and informal address (Supertext SDK 0.7.0).
 - Added: **Send configuration to Supertext** on the plugin settings (below *Check again*): sends Supertext the installed plugins and themes (name, version, enabled or not) and every site language with its Supertext language, so Supertext support can help better. Only when clicked, and only while version information is on. In English, German, French and Italian. Bundled Supertext Plugin Health updated to 0.4.0.
 - Changed: the plugin's *Documentation* link (`docs` in `blueprints.yaml`) opens the README instead of the installation guide.
