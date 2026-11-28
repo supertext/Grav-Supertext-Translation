@@ -10,3 +10,7 @@ node_modules/
 /scripts/movie/voice-cache/
 /tests/e2e/node_modules/
 /tests/e2e/artifacts/
+
+# Python bytecode (the docs scripts)
+__pycache__/
+*.pyc
