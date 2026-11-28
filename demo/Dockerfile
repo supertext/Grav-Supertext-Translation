@@ -1,6 +1,6 @@
 # Grav 2 + Admin2 demo with the Supertext Translation plugin.
 # Build context is the repository root:  docker build -f demo/Dockerfile .
-FROM php:8.5-apache
+FROM php:8.5-apache@sha256:256c25149bca6639f538ece3c5dda90684409227dec546b87ca174950569b8f1
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends libzip-dev libpng-dev libjpeg62-turbo-dev libfreetype6-dev libicu-dev unzip \
